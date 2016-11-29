@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -98,17 +99,21 @@ public class DeepLinkProcessor extends AbstractProcessor {
         }
       }
 
+      int index = element.getAnnotation(deepLinkClass).index();
       String[] deepLinks = element.getAnnotation(deepLinkClass).value();
+
       DeepLinkEntry.Type type = kind == ElementKind.CLASS
           ? DeepLinkEntry.Type.CLASS : DeepLinkEntry.Type.METHOD;
       for (String deepLink : deepLinks) {
         try {
-          deepLinkElements.add(new DeepLinkAnnotatedElement(deepLink, element, type));
+          deepLinkElements.add(new DeepLinkAnnotatedElement(deepLink, element, type, index));
         } catch (MalformedURLException e) {
           messager.printMessage(Diagnostic.Kind.ERROR, "Malformed Deep Link URL " + deepLink);
         }
       }
     }
+
+    Collections.sort(deepLinkElements);
 
     boolean hasSpecifiedDeepLinkActivity
         = !roundEnv.getElementsAnnotatedWith(DeepLinkHandler.class).isEmpty();

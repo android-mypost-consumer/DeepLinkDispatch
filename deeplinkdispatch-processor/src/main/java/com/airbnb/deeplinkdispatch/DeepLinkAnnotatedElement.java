@@ -20,11 +20,12 @@ import java.net.MalformedURLException;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
-final class DeepLinkAnnotatedElement {
+final class DeepLinkAnnotatedElement implements Comparable<DeepLinkAnnotatedElement> {
   private final String uri;
   private final DeepLinkEntry.Type annotationType;
   private final TypeElement annotatedElement;
   private final String method;
+  private int index;
 
   DeepLinkAnnotatedElement(String annotation, Element element, DeepLinkEntry.Type type)
       throws MalformedURLException {
@@ -44,6 +45,12 @@ final class DeepLinkAnnotatedElement {
     }
   }
 
+  DeepLinkAnnotatedElement(String annotation, Element element, DeepLinkEntry.Type type, int index)
+          throws MalformedURLException {
+    this(annotation, element, type);
+    this.index = index;
+  }
+
   String getUri() {
     return uri;
   }
@@ -58,5 +65,17 @@ final class DeepLinkAnnotatedElement {
 
   String getMethod() {
     return method;
+  }
+
+  int getIndex() { return index; }
+
+  /**
+   * Sort by index then method name
+   * @param o
+   * @return
+     */
+  @Override
+  public int compareTo(DeepLinkAnnotatedElement o) {
+    return getIndex() < o.getIndex()? -1 : getIndex() == o.getIndex()? 0 : 1;
   }
 }
