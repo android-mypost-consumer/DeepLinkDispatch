@@ -47,7 +47,8 @@ public final class DeepLinkEntry {
     this.method = method;
     this.parameters = parseParameters(parsedUri);
 
-    String escapedString = schemeHostAndPath.replaceAll(PARAM_REGEX, PARAM_VALUE).replaceAll("#", "\\\\#").replaceAll("\\?", "\\\\?") + "$";
+    // escape reserved characters, add wildcard at the end
+    String escapedString = schemeHostAndPath.replaceAll(PARAM_REGEX, PARAM_VALUE).replaceAll("#", "\\\\#").replaceAll("\\?", "\\\\?") + ".*$";
     this.regex = Pattern.compile(escapedString);
   }
 

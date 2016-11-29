@@ -61,7 +61,7 @@ public class DeepLinkEntryTest {
     DeepLinkEntry entry = deepLinkEntry("airbnb://test/{param1}");
 
     Map<String, String> parameters = entry.getParameters("airbnb://test/123/foo");
-    assertThat(parameters).isEmpty();
+    assertThat(parameters.get("param1")).isEqualTo("123");
   }
 
   @Test public void testNoMatchesFound() {
@@ -147,7 +147,7 @@ public class DeepLinkEntryTest {
 
   @Test public void testUrlWithHash() {
     DeepLinkEntry entry = deepLinkEntry("https://{host}/foo/bar/#/path/{id}?ilink=some-additional-parameter");
-    assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123")).isFalse();
+    assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123?ilink=some-additional-parameter&token=blah")).isTrue();
     assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123?ilink=some-additional-parameter")).isTrue();
     Map<String, String> parameters = entry.getParameters("https://www.example.com/foo/bar/#/path/ABC123?ilink=some-additional-parameter");
     assertThat(parameters.get("host")).isEqualTo("www.example.com");
@@ -156,8 +156,9 @@ public class DeepLinkEntryTest {
 
   @Test public void testUrlWithHash2() {
     DeepLinkEntry entry = deepLinkEntry("http://{host}/view/bar#/foo?id={id}");
-    assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123&param=true")).isFalse();
+    assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123&param=true")).isTrue(); // should match
     assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123")).isTrue();
+    assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123&")).isTrue();
 
     Map<String, String> parameters = entry.getParameters("http://www.example.com/view/bar#/foo?id=ABC123");
     assertThat(parameters.get("host")).isEqualTo("www.example.com");
