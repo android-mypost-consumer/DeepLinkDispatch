@@ -145,6 +145,39 @@ public class DeepLinkEntryTest {
       .contains(entry("foo", "baz"), entry("bar", "qux"));
   }
 
+  @Test public void testUrlWithHash() {
+    DeepLinkEntry entry = deepLinkEntry("https://{host}/foo/bar/#/path/{id}?ilink=some-additional-parameter");
+    assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123")).isFalse();
+    assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123?ilink=some-additional-parameter")).isTrue();
+    Map<String, String> parameters = entry.getParameters("https://www.example.com/foo/bar/#/path/ABC123?ilink=some-additional-parameter");
+    assertThat(parameters.get("host")).isEqualTo("www.example.com");
+    assertThat(parameters.get("id")).isEqualTo("ABC123");
+  }
+
+  @Test public void testUrlWithHash2() {
+    DeepLinkEntry entry = deepLinkEntry("http://{host}/view/bar#/foo?id={id}");
+    assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123&param=true")).isFalse();
+    assertThat(entry.matches("http://www.example.com/view/bar#/foo?id=ABC123")).isTrue();
+
+    Map<String, String> parameters = entry.getParameters("http://www.example.com/view/bar#/foo?id=ABC123");
+    assertThat(parameters.get("host")).isEqualTo("www.example.com");
+    assertThat(parameters.get("id")).isEqualTo("ABC123");
+  }
+
+  @Test public void testGetParamAfterHash() {
+    DeepLinkEntry entry = deepLinkEntry("https://{host}/foo/bar#/example?id={id}");
+    assertThat(entry.matches("https://www.example.com/foo/bar#/example?id=ABC123"));
+    Map<String, String> parameters = entry.getParameters("https://www.example.com/foo/bar#/example?id=ABC123");
+    assertThat(parameters.get("id")).isEqualTo("ABC123");
+  }
+
+  @Test public void testGetParamAfterHash2() {
+    DeepLinkEntry entry = deepLinkEntry("https://{host}/foo/bar/#/path/{id}");
+    assertThat(entry.matches("https://www.example.com/foo/bar/#/path/ABC123"));
+    Map<String, String> parameters = entry.getParameters("https://www.example.com/foo/bar/#/path/ABC123");
+    assertThat(parameters.get("id")).isEqualTo("ABC123");
+  }
+
   private static DeepLinkEntry deepLinkEntry(String uri) {
     return new DeepLinkEntry(uri, DeepLinkEntry.Type.CLASS, String.class, null);
   }

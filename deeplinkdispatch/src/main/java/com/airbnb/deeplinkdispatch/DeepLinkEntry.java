@@ -46,7 +46,9 @@ public final class DeepLinkEntry {
     this.activityClass = activityClass;
     this.method = method;
     this.parameters = parseParameters(parsedUri);
-    this.regex = Pattern.compile(schemeHostAndPath.replaceAll(PARAM_REGEX, PARAM_VALUE) + "$");
+
+    String escapedString = schemeHostAndPath.replaceAll(PARAM_REGEX, PARAM_VALUE).replaceAll("#", "\\\\#").replaceAll("\\?", "\\\\?") + "$";
+    this.regex = Pattern.compile(escapedString);
   }
 
   public Type getType() {

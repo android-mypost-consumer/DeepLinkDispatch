@@ -56,6 +56,7 @@ public class DeepLinkProcessor extends AbstractProcessor {
   private static final ClassName ANDROID_INTENT = ClassName.get("android.content", "Intent");
   private static final ClassName ANDROID_CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName ANDROID_URI = ClassName.get("android.net", "Uri");
+  public static final String PACKAGE_NAME = "com.airbnb.deeplinkdispatch";
 
   private Filer filer;
   private Messager messager;
@@ -113,15 +114,13 @@ public class DeepLinkProcessor extends AbstractProcessor {
         = !roundEnv.getElementsAnnotatedWith(DeepLinkHandler.class).isEmpty();
 
     if (!deepLinkElements.isEmpty()) {
-      String packageName = processingEnv.getElementUtils().getPackageOf(
-          deepLinkElements.get(0).getAnnotatedElement()).getQualifiedName().toString();
       try {
-        generateDeepLinkResult(packageName);
-        generateDeepLinkLoader(packageName, deepLinkElements);
-        generateDeepLinkDelegate(packageName);
+        generateDeepLinkResult();
+        generateDeepLinkLoader(deepLinkElements);
+        generateDeepLinkDelegate();
 
         if (!hasSpecifiedDeepLinkActivity) {
-          generateDeepLinkActivity(packageName);
+          generateDeepLinkActivity();
         }
       } catch (IOException e) {
         messager.printMessage(Diagnostic.Kind.ERROR, "Error creating file");
@@ -142,7 +141,7 @@ public class DeepLinkProcessor extends AbstractProcessor {
    * Generates a DeepLinkResult class for us to use. Must be here because it uses Android's Uri
    * class and our api is a java lib, not Android
    */
-  private void generateDeepLinkResult(String packageName) throws IOException {
+  private void generateDeepLinkResult() throws IOException {
     TypeSpec deepLinkResult = TypeSpec.classBuilder("DeepLinkResult")
         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
         .addField(TypeName.BOOLEAN, "successful", Modifier.PRIVATE, Modifier.FINAL)
@@ -222,12 +221,12 @@ public class DeepLinkProcessor extends AbstractProcessor {
             .build())
         .build();
 
-    JavaFile.builder(packageName, deepLinkResult)
+    JavaFile.builder(PACKAGE_NAME, deepLinkResult)
         .build()
         .writeTo(filer);
   }
 
-  private void generateDeepLinkLoader(String packageName, List<DeepLinkAnnotatedElement> elements)
+  private void generateDeepLinkLoader(List<DeepLinkAnnotatedElement> elements)
       throws IOException {
     FieldSpec registry = FieldSpec
         .builder(ParameterizedTypeName.get(List.class, DeepLinkEntry.class), "registry",
@@ -265,12 +264,12 @@ public class DeepLinkProcessor extends AbstractProcessor {
         .addMethod(parseMethod)
         .build();
 
-    JavaFile.builder(packageName, deepLinkLoader)
+    JavaFile.builder(PACKAGE_NAME, deepLinkLoader)
         .build()
         .writeTo(filer);
   }
 
-  private void generateDeepLinkDelegate(String packageName) throws IOException {
+  private void generateDeepLinkDelegate() throws IOException {
     MethodSpec notifyListenerMethod = MethodSpec.methodBuilder("notifyListener")
         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
         .returns(void.class)
@@ -290,7 +289,7 @@ public class DeepLinkProcessor extends AbstractProcessor {
         .addStatement("$T.getInstance(context).sendBroadcast(intent)",
             ClassName.get("android.support.v4.content", "LocalBroadcastManager"))
         .build();
-    ClassName deepLinkResult = ClassName.get(packageName, "DeepLinkResult");
+    ClassName deepLinkResult = ClassName.get(PACKAGE_NAME, "DeepLinkResult");
     MethodSpec createResultAndNotifyMethod = MethodSpec.methodBuilder("createResultAndNotify")
         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
         .returns(deepLinkResult)
@@ -459,19 +458,19 @@ public class DeepLinkProcessor extends AbstractProcessor {
         .addMethod(notifyListenerMethod)
         .build();
 
-    JavaFile.builder(packageName, deepLinkDelegate)
+    JavaFile.builder(PACKAGE_NAME, deepLinkDelegate)
         .build()
         .writeTo(filer);
   }
 
-  private void generateDeepLinkActivity(String packageName) throws IOException {
+  private void generateDeepLinkActivity() throws IOException {
     MethodSpec onCreateMethod = MethodSpec.methodBuilder("onCreate")
         .addModifiers(Modifier.PROTECTED)
         .addAnnotation(Override.class)
         .returns(void.class)
         .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
         .addStatement("super.onCreate(savedInstanceState)")
-        .addStatement("$T.dispatchFrom(this)", ClassName.get(packageName, "DeepLinkDelegate"))
+        .addStatement("$T.dispatchFrom(this)", ClassName.get(PACKAGE_NAME, "DeepLinkDelegate"))
         .addStatement("finish()")
         .build();
 
@@ -481,7 +480,7 @@ public class DeepLinkProcessor extends AbstractProcessor {
         .addMethod(onCreateMethod)
         .build();
 
-    JavaFile.builder(packageName, deepLinkActivity)
+    JavaFile.builder(PACKAGE_NAME, deepLinkActivity)
         .build()
         .writeTo(filer);
   }

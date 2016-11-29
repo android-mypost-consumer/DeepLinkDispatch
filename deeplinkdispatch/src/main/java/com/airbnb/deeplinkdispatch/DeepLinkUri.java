@@ -209,9 +209,11 @@ public final class DeepLinkUri {
    * returned path is always nonempty and is prefixed with {@code /}.
    */
   String encodedPath() {
+    // get full path after ? and #
     int pathStart = url.indexOf('/', scheme.length() + 3); // "://".length() == 3.
-    int pathEnd = delimiterOffset(url, pathStart, url.length(), "?#");
-    return url.substring(pathStart, pathEnd);
+    int pathEnd = url.length();
+    String substring = url.substring(pathStart, pathEnd);
+    return canonicalize(substring, DeepLinkUri.CONVERT_TO_URI_ENCODE_SET, true, true);
   }
 
   static void pathSegmentsToString(StringBuilder out, List<String> pathSegments) {
