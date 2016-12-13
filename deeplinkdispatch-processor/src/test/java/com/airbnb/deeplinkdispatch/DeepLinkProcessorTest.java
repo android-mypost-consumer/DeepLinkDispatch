@@ -10,6 +10,7 @@ import static com.google.common.truth.Truth.assert_;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class DeepLinkProcessorTest {
+
   @Test public void testProcessor() {
     JavaFileObject sampleActivity = JavaFileObjects
         .forSourceString("SampleActivity", "package com.example;"
@@ -22,11 +23,10 @@ public class DeepLinkProcessorTest {
         .compilesWithoutError()
         .and()
         .generatesSources(
-            JavaFileObjects.forResource("DeepLinkActivity.java"),
-            JavaFileObjects.forSourceString("/SOURCE_OUTPUT.com.example.DeepLinkLoader",
-                "package com.example;\n"
+            JavaFileObjects.forSourceString("/SOURCE_OUTPUT.com.airbnb.deeplinkdispatch.DeepLinkLoader",
+                "package com.airbnb.deeplinkdispatch;\n"
                     + "\n"
-                    + "import com.airbnb.deeplinkdispatch.DeepLinkEntry;\n"
+                    + "import com.example.SampleActivity;\n"
                     + "import java.lang.String;\n"
                     + "import java.util.LinkedList;\n"
                     + "import java.util.List;\n"
@@ -62,11 +62,10 @@ public class DeepLinkProcessorTest {
         .compilesWithoutError()
         .and()
         .generatesSources(
-            JavaFileObjects.forResource("DeepLinkActivityUppercase.java"),
-            JavaFileObjects.forSourceString("/SOURCE_OUTPUT.com.example.DeepLinkLoader",
-                "package com.Example;\n"
+            JavaFileObjects.forSourceString("/SOURCE_OUTPUT.com.airbnb.deeplinkdispatch.DeepLinkLoader",
+                    "package com.airbnb.deeplinkdispatch;\n"
                     + "\n"
-                    + "import com.airbnb.deeplinkdispatch.DeepLinkEntry;\n"
+                    + "import com.Example.SampleActivity;\n"
                     + "import java.lang.String;\n"
                     + "import java.util.LinkedList;\n"
                     + "import java.util.List;\n"
